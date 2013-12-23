@@ -3,7 +3,9 @@
 angular.module('ngIsotopeApp', [
   'ngCookies',
   'ngResource',
-  'ngSanitize'
+  'ngRoute',
+  'ngSanitize',
+  'rbvea.isotope'
 ])
   .config(function ($routeProvider, $locationProvider) {
     $routeProvider
