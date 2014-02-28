@@ -1,5 +1,40 @@
-/* main.scss */
+@import '_bourbon';
 
 * {
-  box-sizing: border-box;
+  @include box-sizing(border-box);
+}
+
+.isotope-block {
+  // border: 1px solid black; 
+  // position: absolute;
+  // @include transition-property(left, top);
+  // @include transition-duration(1200ms);
+  margin-bottom: 10px;
+  display: inline-block;
+  .img {
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 0 auto; 
+  }
+  &.ng-enter{
+    @include transition-duration(0.5s);
+    opacity: 0;
+    &.ng-enter-active {
+      opacity: 1; 
+    }
+  }
+  &.ng-enter-stagger {
+    @include transition-delay(0.2s);
+  }
+  &.ng-leave {
+    @include transition-duration(0.5s);
+    opacity: 1;
+    &.ng-leave-active {
+      opacity: 0;
+    }
+  }
+  &.ng-leave-stagger {
+    @include transition-delay(0.2s);
+  }
 }
