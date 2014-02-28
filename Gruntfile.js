@@ -46,6 +46,16 @@ module.exports = function (grunt) {
         url: 'http://localhost:<%= express.options.port %>'
       }
     },
+    sass : {
+      dev: {
+        options : {
+          includePaths: ['app/bower_components/bourbon/app/assets/stylesheets']
+        },
+        files: {
+          'app/styles/main.css': 'app/styles/main.scss' 
+        }
+      }
+    },
     watch: {
       js: {
         files: ['{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js'],
@@ -78,8 +88,8 @@ module.exports = function (grunt) {
         }
       },
       styles: {
-        files: ['<%= yeoman.app %>/styles/{,*/}*.css'],
-        tasks: ['newer:copy:styles', 'autoprefixer']
+        files: ['<%= yeoman.app %>/styles/{,*/}*.scss'],
+        tasks: ['newer:sass', 'newer:copy:styles']
       },
       gruntfile: {
         files: ['Gruntfile.js']
@@ -129,24 +139,6 @@ module.exports = function (grunt) {
       server: '.tmp'
     },
 
-    // Add vendor prefixed styles
-    autoprefixer: {
-      options: {
-        browsers: ['last 1 version']
-      },
-      dist: {
-        files: [{
-          expand: true,
-          cwd: '.tmp/styles/',
-          src: '{,*/}*.css',
-          dest: '.tmp/styles/'
-        }]
-      }
-    },
-
-    
-
-    
 
     // Renames files for browser caching purposes
     rev: {
@@ -304,9 +296,6 @@ module.exports = function (grunt) {
 
     // Run some tasks in parallel to speed up the build process
     concurrent: {
-      server: [
-        'copy:styles'
-      ],
       test: [
         'copy:styles'
       ],
@@ -348,7 +337,7 @@ module.exports = function (grunt) {
     karma: {
       unit: {
         configFile: 'karma.conf.js',
-        singleRun: true
+        singleRun: false 
       }
     }
   });
@@ -364,8 +353,6 @@ module.exports = function (grunt) {
 
     grunt.task.run([
       'clean:server',
-      'concurrent:server',
-      'autoprefixer',
       'express:dev',
       'open',
       'watch'
