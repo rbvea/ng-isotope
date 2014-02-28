@@ -1,5 +1,12 @@
 <h1> Isotope </h1>
 
-<div isotope="images">
+<select id="category-select" ng-model="category" ng-change="change">
+  <option value="">all</option>
+  <option value="web">web</option>
+  <option value="app">app</option>
+  <option value="design">design</option>
+</select>
+
+<div isotope="images", ng-click="filter()">
   
 </div>
