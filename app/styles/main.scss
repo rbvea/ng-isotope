@@ -4,37 +4,41 @@
   @include box-sizing(border-box);
 }
 
+div[isotope] {
+  position: relative;
+}
+
 .isotope-block {
-  // border: 1px solid black; 
-  // position: absolute;
-  // @include transition-property(left, top);
-  // @include transition-duration(1200ms);
-  margin-bottom: 10px;
-  display: inline-block;
+  position: absolute;
+
   .img {
     background-size: cover; 
     background-position: center;
     background-repeat: no-repeat;
     margin: 0 auto; 
   }
+
   &.ng-enter{
-    @include transition-duration(0.5s);
     opacity: 0;
+    @include transform(translateY(1000px));
+    @include transition-duration(1s);
+    @include transition-timing-function($ease-out-cubic);
     &.ng-enter-active {
-      opacity: 1; 
+      @include transform(translateY(0px));
+      opacity: 1;
     }
   }
   &.ng-enter-stagger {
-    @include transition-delay(0.2s);
+    transition-delay: (0.1s);
   }
   &.ng-leave {
+    opacity: 1; 
+    @include transform(translateX(0px));
     @include transition-duration(0.5s);
-    opacity: 1;
+    @include transition-timing-function($ease-in-back);
     &.ng-leave-active {
       opacity: 0;
+      @include transform(translateX(-500px));
     }
-  }
-  &.ng-leave-stagger {
-    @include transition-delay(0.2s);
   }
 }

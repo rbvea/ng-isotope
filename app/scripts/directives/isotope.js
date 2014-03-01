@@ -3,9 +3,10 @@
 
 var app = angular.module('rbvea.isotope', ['ngAnimate']);
 
-app.directive('ready', ['$animate', function($animate) {
+app.directive('ready', [function() {
   return function(scope, elm) {
     var preload = new Image();
+    var parScope = scope.$parent;
     preload.src = scope.card.path;
     angular.element(preload).load(function() {
       scope.imgWidth = preload.width;
@@ -21,34 +22,60 @@ app.directive('ready', ['$animate', function($animate) {
         'height': scope.imgHeight,
         'order': scope.$index
       });
-      scope.$parent.numElms++;
-      if(scope.$parent.numElms === 18) {
-        scope.$parent.ready = true;
+      parScope.numElms++;
+      if(parScope.numElms === parScope[parScope.source].length) {
+        parScope.ready = true;
+        parScope.$apply();
       }
-      $animate.enter(imageElm.parent(), scope.$parent.container, null, function (){
-      });
     });
   };
 }]);
 
-app.directive('isotope', ['$log', '$compile', '$filter', '$animate',  function($log, $compile, $filter, $animate) {
+app.directive('isotope', ['$log', '$compile', '$filter', '$animate', '$window', function($log, $compile, $filter, $animate, $window) {
   return function(scope, iElement, attr) {
     scope.container = iElement;
-    var source = attr.isotope;
-    scope.ready = false;
+    scope.source = attr.isotope;
     scope.numElms = 0;
     scope.children = {};
     scope.displayedIDs = [];
-    scope.category = '';
+    scope.category = null;
+    scope.ready = false;
+    scope.numColumns = Math.floor(angular.element($window).width() / 320);
 
-    var filter = $filter('filter');
+    var filter = $filter('filter'),
+        str = '<div class="isotope-block"><div class="img" data-category="{{card.category}}" ready="false"><span ng-bind="card.category"></span></div></div>',
+        compile = $compile(str);
 
-    var str = '<div class="isotope-block"><div class="img" data-category="{{card.category}}" ready="false"><span ng-bind="card.category"></span></div></div>';
-    var compile = $compile(str);
+    scope.enter = function(id, done) {
+      var i = scope.displayedIDs.length;
+      scope.displayedIDs.push(id);
+      var elm = scope.children[id];
+      var col = (i % scope.numColumns) * 310;
+      if(i >= scope.numColumns && _.isFunction(elm.position)) {
+        var above = angular.element(scope.children[scope.displayedIDs[i - scope.numColumns]]);
+        var top = (above.position().top + above.height()) + 10;
+        angular.element(elm).css({top : top, left: col});
+        if(!angular.element.contains(iElement, elm)) {
+          $animate.enter(elm, scope.container);
+          if(_.isFunction(done)) {
+            done();
+          }
+        }
+      } else {
+        elm.css({top : 0, left: col});
+        scope.container.append(elm);
+        if(!angular.element.contains(iElement, elm)) {
+          $animate.enter(elm, scope.container);
+          if(_.isFunction(done)) {
+            done();
+          }
+        }
+      }
+    };
 
     scope.filter = function(cat) {
       var ids = [];
-      var newArray = filter(scope[source], {category: cat});
+      var newArray = filter(scope[scope.source], {category: cat});
       _.each(newArray, function(val) {
         ids.push(val.$id);
       });
@@ -56,34 +83,35 @@ app.directive('isotope', ['$log', '$compile', '$filter', '$animate',  function($
     };
 
     scope.$watch('ready', function(nu) {
-      $log.warn(nu);
+      if(nu) {
+        scope.category = '';
+      }
     });
 
     scope.$watch('category', function(nu) {
       var arr = scope.filter(nu);
-      var diff = _.difference(_.keys(scope.children), arr); //take ids not in array
+      var diff = _.difference(scope.displayedIDs, arr);
+      scope.displayedIDs = [];
       _.each(diff, function(id) {
-        $animate.leave(scope.children[id]);
-      });
-      if(scope.ready) {
-        _.each(arr, function(id) {
-          $animate.enter(scope.children[id], scope.container);
+          $animate.leave(scope.children[id]);
         });
-      }
+      _.each(arr, function(id) {
+        scope.enter(id);
+      });
     });
 
-    if(angular.isArray(scope[source])) {
-      angular.forEach(scope[source], function(card, i) {
+    if(angular.isArray(scope[scope.source])) {
+      angular.forEach(scope[scope.source], function(card, i) {
         //create new scope for each isotope-block
         var newScope = scope.$new();
 
         card.$id = newScope.$id;
         newScope.card = card;
-        scope[source][i].$id = newScope.$id;
+        scope[scope.source][i].$id = newScope.$id;
 
         var compiled = compile(newScope, function(){});
         scope.children[card.$id] = compiled;
-        scope.displayedIDs.push(card.$id);
+        // scope.displayedIDs.push(card.$id);
       });
     }
   };
